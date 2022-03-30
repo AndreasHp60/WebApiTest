@@ -27,12 +27,12 @@ jobs:
 
       - name: Update database
         env: 
-        dbcs: ${{ secrets.DBCS }}
+          dbcs: ${{ secrets.DBCS }}
         run: |
-              dotnet tool install --global dotnet-ef
-              cd server
-              dotnet tool restore
-              dotnet ef database update
+          dotnet tool install --global dotnet-ef
+          cd server
+          dotnet tool restore
+          dotnet ef database update
 
       - name: dotnet publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
