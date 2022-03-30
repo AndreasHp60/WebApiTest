@@ -41,7 +41,7 @@ Console.WriteLine($"WebRootPath: {builder.Environment.WebRootPath}");
 //builder.Services.AddDbContext<TodoContext>(options =>
    // options.UseSqlite(builder.Configuration.GetConnectionString("TodoContextSQLite")));
 
-builder.Services.AddDbContext<TodoContext>(options =>
+builder.Services.AddDbContext<ProjektContext>(options =>
     options.UseSqlServer(builder.Configuration["dbcs"]));
 
 // Kan vise flotte fejlbeskeder i browseren hvis der kommer fejl fra databasen
@@ -101,28 +101,36 @@ app.Use(async (context, next) =>
 });
 
 // Herunder alle endpoints i API'en
-app.MapGet("/api/tasks", (DataService service) =>
+app.MapGet("/", (HttpContext context, DataService service) =>
 {
-    return service.GetTasks();
+    context.Response.ContentType = "text/html;charset=utf-8";
+    return "Hejsa. Her er der intet at se. Prøv i stedet: " +
+            "<a href=\"/api/tasks\">/api/tasks</a>";
 });
 
-app.MapGet("/api/tasks/{id}", (DataService service, int id) =>
+app.MapGet("/api/questions", (DataService service) =>
 {
-    return service.GetTaskById(id);
+    return service.GetQuestions();
 });
 
-app.MapPost("/api/tasks/", (PostTaskData data, DataService service) =>
+app.MapGet("/api/questions/{id}", (DataService service, int id) =>
 {
-    return service.CreateTask(data.text, data.done, data.userId);
+    return service.GetQuestionById(id);
 });
 
-app.MapPut("/api/tasks/{id}", (int id, PutTaskData data, DataService service) => {
-    return service.UpdateTask(id, data.text, data.done);
+app.MapPost("/api/question/", (QuestionData data, DataService service) =>
+{
+    return service.CreateQuestion(data.date, data.headline, data.question, data.name);
 });
 
 app.MapGet("/api/users", (DataService service) =>
 {
     return service.GetUsers();
+});
+
+app.MapGet("/api/users/{id}", (DataService service, int id) =>
+{
+    return service.GetUserById(id);
 });
 
 app.MapPost("/api/users/", (UserData data, DataService service) =>
@@ -133,7 +141,5 @@ app.MapPost("/api/users/", (UserData data, DataService service) =>
 app.Run();
 
 // Records til input data (svarende til input JSON)
-record PostTaskData(string text, bool done, int userId);
-
-record PutTaskData(string text, bool done);
+record QuestionData(DateTime date, string headline, string question, string name);
 record UserData(string name);

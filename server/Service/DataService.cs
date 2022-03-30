@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 using Data;
@@ -8,77 +8,94 @@ namespace Service;
 
 public class DataService
 {
-    private TodoContext db { get; }
+    private ProjektContext db { get; }
 
-    public DataService(TodoContext db) {
+    public DataService(ProjektContext db)
+    {
         this.db = db;
     }
     /// <summary>
     /// Seeder noget nyt data i databasen hvis det er nødvendigt.
     /// </summary>
-    public void SeedData() {
-        User user = db.Users.FirstOrDefault()!;
-        if (user == null) {
+    public void SeedData()
+    {
+        User user = db.User.FirstOrDefault()!;
+        if (user == null)
+        {
             user = new User("Kristian");
-            db.Users.Add(user);
-            db.Users.Add(new User("Søren"));
-            db.Users.Add(new User("Mette"));
+            db.User.Add(user);
+            db.User.Add(new User("Søren"));
         }
 
-        TodoTask task = db.Tasks.FirstOrDefault()!;
-        if (task == null)
+        Category category = db.Category.FirstOrDefault()!;
+        if (category == null)
         {
-            db.Tasks.Add(new TodoTask("Husk denne opgave", false, user));
-            db.Tasks.Add(new TodoTask("Lave kaffe", true, user));
-            db.Tasks.Add(new TodoTask("Betale regninger", false, user));
+            category = new Category("Alt muligt");
+            db.Category.Add(category);
+        }
+
+        Questions questions = db.Questions.FirstOrDefault()!;
+        if (questions == null)
+        {
+            var question = new Questions(DateTime.Now, "Hjælp mig", "Jeg kan ikke finde ud af at kode", 21, user);
+            var answer = new Answers(DateTime.Now, "Det var træls", 1, user);
+            question.Answers.Add(answer);
+            question.Answers.Add(new Answers(DateTime.Now, "Så må du øve dig", 4, user));
+            category.Questions.Add(question);
+            db.Questions.Add(question);
         }
 
         db.SaveChanges();
     }
 
-    public List<TodoTask> GetTasks() {
-        return db.Tasks
-            .Include(task => task.User)
+    // Metode til at hente alle spørgsmål
+    public List<Questions> GetQuestions()
+    {
+        return db.Questions
+            /*.Include(task => task.User)*/
             .ToList();
-    }
+    } 
 
-    public TodoTask GetTaskById(int id) {
-        var task = db
-            .Tasks
-            .Where(task => task.TodoTaskId == id)
+    //Metode til at hente enkelt spørgsmål ud fra ID
+    public Questions GetQuestionById(int id)
+    {
+        var question = db
+            .Questions
+            .Where(question => question.QuestionsId == id)
             .Include(t => t.User)
             .First();
-        return task;
+        return question;
     }
 
-    public string CreateTask(string text, bool done, int userId) {
-        User user = db.Users.Where(user => user.UserId == userId).First();
-        TodoTask task = new TodoTask(text, done, user);
-        db.Tasks.Add(task);
+    public string CreateQuestion(DateTime date, string headline, string question, string name)
+    {
+        User user = db.User.Where(user => user.Name == name).First();
+        Questions questions = new Questions(date, headline, question, 0, user);
+        db.Questions.Add(questions);
         db.SaveChanges();
         return JsonSerializer.Serialize(
-            new { msg = "New task created", newTask = task }
+            new { msg = "New questions created", newQuestion = questions }
         );
     }
 
-    public string UpdateTask(int id, string text, bool done) {
-        Console.WriteLine("id er " + id);
-        TodoTask task = db.Tasks.Where(task => task.TodoTaskId == id).First();
-        task.Text = text;
-        task.Done = done;
-        db.SaveChanges();
-        return JsonSerializer.Serialize(
-            new { msg = "Task updated", task = task }
-        );
+    public DbSet<User> GetUsers()
+    {
+        return db.User;
     }
 
-    public DbSet<User> GetUsers() {
-        return db.Users;
+    public User GetUserById(int id)
+    {
+        var user = db
+               .User
+               .Where(user => user.UserId == id)
+               .First();
+        return user;
     }
 
-    public string CreateUser(string name) {
+    public string CreateUser(string name)
+    {
         var user = new User(name);
-        db.Users.Add(user);
+        db.User.Add(user);
         db.SaveChanges();
         return JsonSerializer.Serialize(
             new { msg = "New user created", newUser = user });
