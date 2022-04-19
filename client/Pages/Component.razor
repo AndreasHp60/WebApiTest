@@ -1,0 +1,61 @@
+﻿@page "/{id:int}"
+
+@using TodoListBlazor.Data;
+@using Model;
+@inject QuestionService questionService
+
+@if (question == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="card">
+        <h5 class="card-header">Question</h5>
+            <div class="card-body">
+                <div class= "row">
+                    <div class="col-10">
+                        <h5 class="card-title ">@question.Headline</h5>
+                    </div>
+
+                    <div class="col">
+                        <a href="/Home" class="btn btn-primary">Home</a>
+                    </div>
+
+                    <div class="col">
+                        <p style= "font-weight: bolder;">Rating: @question.Rating</p>
+                    </div>
+                </div>
+                
+                    <p class="card-text">@question.Question</p>
+                    <figcaption class="blockquote-footer">@question.User.Name, @question.Date</figcaption>
+            </div>
+    </div>
+    <div class="card">
+        <h5 class="card-header">Answers</h5>
+                @foreach (var answer in question.Answers)
+        {
+            <div class="card-body">
+                
+                    <p class="card-text">@answer.Answer</p>
+                    <figcaption class="blockquote-footer">@answer.User.Name, @answer.Date</figcaption>
+            </div>
+        }
+    </div>
+
+    <div class="col">
+    <a href=@string.Format("/Question/{0}/CreateAnswer",question.QuestionsId) class="btn btn-primary">Create Answer</a>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int id    {get; set;}
+
+    private Questions question;
+
+    protected override async Task OnInitializedAsync()
+    {
+        question = await questionService.GetQuestionData(id);
+    }   
+}

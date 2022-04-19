@@ -9,6 +9,11 @@ namespace Model
 			this.Name = name;
 		}
 
+		public Category()
+        {
+
+        }
+
 		public long CategoryId { get; set; }
 		public string Name { get; set; }
 

@@ -1,0 +1,82 @@
+﻿@page "/Create"
+
+@using TodoListBlazor.Data;
+@using Model;
+@inject QuestionService questionService
+@inject NavigationManager navHelper
+
+<div class= "row">
+    <div class="col-10">
+    <h1>Create Question</h1>
+    </div>
+
+    <div class="col">
+    <a href="/Home" class="btn btn-primary">Home</a>
+    </div>
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">Question name</span>
+  <input type="text" class="form-control" aria-label="Question name" aria-describedby="basic-addon1" placeholder="Question name" @bind-value="@question.Headline">
+</div>
+
+<div class="input-group">
+  <span class="input-group-text">Text</span>
+  <input class="form-control" aria-label="With textarea" placeholder="name" @bind-value="question.Question"></input>
+</div>
+
+<br/>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">User</span>
+  <input type="text" class="form-control" aria-label="name" aria-describedby="basic-addon1" placeholder="name" @bind-value="@question.User.Name">
+</div>
+
+@if(categories == null)
+{
+    <p><em>Loading...</em></p>
+}
+
+else
+{
+<p>
+    Hold "Ctrl" to select one or more categories: 
+    <select @onchange="SelectedCategories" multiple>
+        @foreach (var category in categories)
+        {
+           <option value="@category.Name">@category.Name</option>
+        }
+    </select>
+</p>
+}
+
+
+<div>
+    <button class="btn btn-primary" type="submit" @onclick="CreateQuestionData">Create question</button>
+</div>
+
+@code {
+    private Questions question { get; set; } = new Questions();
+
+    private DateTime date = DateTime.Now;
+
+    private void CreateQuestionData()
+    {
+        question.Date = date;
+        questionService.PostQuestionData(question, NewCategories);
+        navHelper.NavigateTo("/home");
+    }   
+    private Category[] categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await questionService.GetCategoriesData();
+    }
+
+    private string[] NewCategories { get; set; } = new string[] { };
+    private void SelectedCategories(ChangeEventArgs e)
+        {
+             NewCategories = (string[])e.Value;
+        }
+}
+

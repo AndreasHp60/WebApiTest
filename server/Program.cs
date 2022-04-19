@@ -92,6 +92,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors(AllowSomeStuff);
+app.MapFallbackToFile("index.html");
 
 // Middlware der kører før hver request. Alle svar skal have ContentType: JSON.
 app.Use(async (context, next) =>
@@ -101,12 +102,6 @@ app.Use(async (context, next) =>
 });
 
 // Herunder alle endpoints i API'en
-app.MapGet("/", (HttpContext context, DataService service) =>
-{
-    context.Response.ContentType = "text/html;charset=utf-8";
-    return "Hejsa. Her er der intet at se. Prøv i stedet: " +
-            "<a href=\"/api/tasks\">/api/tasks</a>";
-});
 
 app.MapGet("/api/questions", (DataService service) =>
 {
@@ -120,12 +115,22 @@ app.MapGet("/api/questions/{id}", (DataService service, int id) =>
 
 app.MapPost("/api/question/", (QuestionData data, DataService service) =>
 {
-    return service.CreateQuestion(data.date, data.headline, data.question, data.name);
+    return service.CreateQuestion(data.date, data.headline, data.question, data.name, data.category);
+});
+
+app.MapPost("/api/question/{id}/answers", (AnswerData data, DataService service, int id) =>
+{
+    return service.CreateAnswers(id, data.date, data.answer, data.name);
 });
 
 app.MapGet("/api/users", (DataService service) =>
 {
     return service.GetUsers();
+});
+
+app.MapGet("/api/categories", (DataService service) =>
+{
+    return service.GetCategories();
 });
 
 app.MapGet("/api/users/{id}", (DataService service, int id) =>
@@ -141,5 +146,6 @@ app.MapPost("/api/users/", (UserData data, DataService service) =>
 app.Run();
 
 // Records til input data (svarende til input JSON)
-record QuestionData(DateTime date, string headline, string question, string name);
+record QuestionData(DateTime date, string headline, string question, string name, string[] category);
 record UserData(string name);
+record AnswerData(DateTime date, string answer, string name);

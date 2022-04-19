@@ -53,6 +53,9 @@ public class DataService
     {
         return db.Questions
             /*.Include(task => task.User)*/
+            .Include(t => t.User)
+            .Include(i => i.Answers)
+            .Include(y => y.Category)
             .ToList();
     } 
 
@@ -63,14 +66,31 @@ public class DataService
             .Questions
             .Where(question => question.QuestionsId == id)
             .Include(t => t.User)
+            .Include(i => i.Answers)
+            .Include(y => y.Category)
             .First();
         return question;
     }
 
-    public string CreateQuestion(DateTime date, string headline, string question, string name)
+    public string CreateQuestion(DateTime date, string headline, string question, string name, string[] categories)
     {
-        User user = db.User.Where(user => user.Name == name).First();
+        User user = db.User.Where(user => user.Name == name).FirstOrDefault();
+        if (user == null)
+        {
+            return JsonSerializer.Serialize(
+                    new { msg = "User not found", user = name });
+        }
         Questions questions = new Questions(date, headline, question, 0, user);
+        foreach(var category in categories)
+        {
+            Category cat = db.Category.Where(cat => cat.Name == category).FirstOrDefault();
+            if(cat == null)
+            {
+                return JsonSerializer.Serialize(
+                        new { msg = "Category not found", category = category });
+            }
+            questions.Category.Add(cat);
+        }
         db.Questions.Add(questions);
         db.SaveChanges();
         return JsonSerializer.Serialize(
@@ -78,9 +98,31 @@ public class DataService
         );
     }
 
+    public string CreateAnswers(int id, DateTime date, string answer, string name)
+    {
+        User user = db.User.Where(user => user.Name == name).FirstOrDefault();
+        if (name == null)
+        {
+            return JsonSerializer.Serialize(
+                    new { msg = "User not found", name = name });
+        }
+        Questions question = db.Questions.Where(question => question.QuestionsId == id).FirstOrDefault();
+        Answers answers = new Answers(date, answer, 0, user);
+        question.Answers.Add(answers);
+        db.SaveChanges();
+        return JsonSerializer.Serialize(
+            new { msg = "New answer created", newAnswers = answers }
+        );
+    }
+
     public DbSet<User> GetUsers()
     {
         return db.User;
+    }
+
+    public DbSet<Category> GetCategories()
+    {
+        return db.Category;
     }
 
     public User GetUserById(int id)
@@ -91,6 +133,8 @@ public class DataService
                .First();
         return user;
     }
+
+
 
     public string CreateUser(string name)
     {

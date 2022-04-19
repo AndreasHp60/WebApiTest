@@ -1,36 +1,76 @@
-﻿@page "/fetchdata"
+﻿@page "/Home"
 
 @using TodoListBlazor.Data;
-@inject TodoListService todoService
+@using Model;
+
+@inject QuestionService questionService
 
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
 
-<PageTitle>The Todo List</PageTitle>
+<PageTitle>ASK-IT</PageTitle>
 
-<h1>The Todo List</h1>
+<div class= "row">
+    <div class="col-10">
+    <h1>ASK-IT</h1>
+    </div>
 
-@if (tasks == null)
+    <div class="col">
+    <a href="/Create" class="btn btn-primary">Create a question</a>
+    </div>
+</div>
+
+@if (questions == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <ol>
-        @foreach (var task in tasks)
+    <div class="card">
+        <h5 class="card-header">Questions</h5>
+                @foreach (var question in questions)
         {
-            <li>
-                <TodoTask Task=@task></TodoTask>
-            </li>
+            <div class="card-body">
+                <div class= "row">
+                    <div class="col-11">
+                    <h5 class="card-title ">@question.Headline</h5>
+                    </div>
+
+                    <div class="col">
+                    <p style= "font-weight: bolder;">Rating: @question.Rating</p>
+                    </div>
+                </div>
+                
+                <div class= "row">
+                    <div class="col-11">
+                    <p class="card-text">@question.Question</p>
+                    </div>
+
+                    <div class="col">
+                    <p class="card-text" style= "font-weight: bolder;" >Categories:</p>
+                    </div>
+                    </div>
+                        @foreach (var category in question.Category)
+                            {
+                                <div class="card-body">
+                                    <p style= "font-weight: bolder;text-align:right">@category.Name</p>
+                                </div>
+                             }
+                    <figcaption class="blockquote-footer">@question.User.Name, @question.Date</figcaption>
+                    <a href=@string.Format("{0}",question.QuestionsId) class="btn btn-primary">Watch question</a>
+                </div>
+
         }
-    </ol>
+    </div>
 }
 
+
+
 @code {
-    private TaskData[]? tasks;
+    private Questions[] questions;
 
     protected override async Task OnInitializedAsync()
     {
-        tasks = await todoService.GetTaskData();
+        questions = await questionService.GetQuestionsData();
     }    
 }

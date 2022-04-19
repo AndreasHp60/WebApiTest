@@ -1,0 +1,63 @@
+﻿@page "/Question/{id:int}/CreateAnswer"
+
+@using TodoListBlazor.Data;
+@using Model;
+@inject QuestionService questionService
+@inject NavigationManager navHelper
+
+
+@if (question == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+<div class= "row">
+    <div class="col-10">
+    <h1>Create Answer</h1>
+    </div>
+
+    <div class="col">
+    <a href="/Home" class="btn btn-primary">Home</a>
+    </div>
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">Answer</span>
+  <input type="text" class="form-control" aria-label="answer text" aria-describedby="basic-addon1" placeholder="Answer Text" @bind-value="@answer.Answer">
+</div>
+
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">User</span>
+  <input type="text" class="form-control" aria-label="name" aria-describedby="basic-addon1" placeholder="name" @bind-value="@answer.User.Name">
+</div>
+
+
+<div>
+    <button class="btn btn-primary" type="submit" @onclick="CreateAnswerData">Create Answer</button>
+</div>
+}
+@code {
+
+    [Parameter]
+    public int id    {get; set;}
+
+    private Questions question { get; set; } = new Questions();
+    private Answers answer { get; set; } = new Answers();
+
+    private DateTime date = DateTime.Now;
+
+    private void CreateAnswerData()
+    {
+        answer.Date = date;
+        questionService.PostAnswerData(answer, id);
+        navHelper.NavigateTo("/home");
+    } 
+
+    protected override async Task OnInitializedAsync()
+    {
+        question = await questionService.GetQuestionData(id);
+    }    
+}
+
+
